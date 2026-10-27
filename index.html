@@ -83,7 +83,7 @@ nav button.on{color:var(--accent);font-weight:700}
 /* 시트 */
 .sheet{position:fixed;inset:0;z-index:50;background:var(--bg);overflow-y:auto;display:none}
 .sheet.on{display:block}
-#formSheet{z-index:60}#voiceSheet{z-index:70}#photoView{z-index:80}
+#formSheet,#memoSheet{z-index:60}#voiceSheet{z-index:70}#photoView{z-index:80}
 .sheet .top{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
 .sheet .top h2{font-size:17px;margin:0}
 .sheet .top button{border:0;background:none;color:var(--accent);font:inherit;font-weight:700;padding:6px;cursor:pointer}
@@ -132,6 +132,20 @@ label.f{display:flex;align-items:center;justify-content:space-between;font-size:
 #vText{min-height:180px;font-size:16px;line-height:1.8}
 .guide{font-size:13px;color:var(--sub);line-height:1.8;text-align:left;background:var(--card);border-radius:12px;padding:10px 12px;margin-top:12px}
 .guide b{color:var(--accent)}
+
+/* 메모 */
+.memo{display:flex;gap:10px;align-items:flex-start;background:var(--card);border-radius:12px;padding:11px 12px;margin-bottom:6px;box-shadow:var(--shadow);cursor:pointer}
+.memo .ck{width:22px;height:22px;flex:none;margin:1px 0 0;accent-color:var(--accent)}
+.memo .mt{flex:1;min-width:0}
+.memo .mt b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.memo .mt .pv{font-size:14px;color:var(--sub);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;word-break:break-word}
+.memo .mt .mm{font-size:12px;color:var(--sub);margin-top:5px;display:flex;gap:8px;flex-wrap:wrap}
+.memo.done .mt b,.memo.done .mt .pv{text-decoration:line-through;color:var(--sub)}
+.memo .pin{flex:none;font-size:14px}
+#m-text{min-height:38vh;font-size:16px;line-height:1.75}
+.mBar{display:flex;gap:8px;align-items:center;margin-top:12px}
+.mBar label{display:flex;gap:6px;align-items:center;font-size:14px;cursor:pointer}
+.mBar input{width:20px;height:20px;accent-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -158,6 +172,12 @@ label.f{display:flex;align-items:center;justify-content:space-between;font-size:
     </div>
     <div class="chips" id="stChips"></div>
     <div id="list"></div>
+  </section>
+
+  <section class="tab" id="tab-memo">
+    <div class="tools"><input id="mq" type="search" placeholder="🔍 메모 검색"></div>
+    <div class="chips" id="mChips"></div>
+    <div id="mList"></div>
   </section>
 
   <section class="tab" id="tab-set">
@@ -210,6 +230,7 @@ label.f{display:flex;align-items:center;justify-content:space-between;font-size:
 <button class="fab" id="fabMic" title="말로 기록">🎤</button>
 <nav>
   <button class="on" data-tab="list"><i>💡</i>아이템</button>
+  <button data-tab="memo"><i>📝</i>메모</button>
   <button data-tab="set"><i>⚙️</i>설정</button>
 </nav>
 
@@ -244,6 +265,37 @@ label.f{display:flex;align-items:center;justify-content:space-between;font-size:
   </div>
 </div>
 
+<!-- 메모 쓰기 -->
+<div class="sheet" id="memoSheet">
+  <div class="top"><button id="mCancel">취소</button><h2 id="mTitle">새 메모</h2><button id="mSave">저장</button></div>
+  <div class="body">
+    <div class="sec">
+      <label class="f">제목 (없으면 첫 줄) <button class="mic" data-f="m-title">🎤</button></label>
+      <input id="m-title" placeholder="예: 다음 주 발주할 것">
+      <label class="f">내용 <button class="mic" data-f="m-text">🎤</button></label>
+      <textarea id="m-text" placeholder="🎤를 누르고 말하거나 직접 적으세요"></textarea>
+      <label class="f">분류</label>
+      <div class="chips wrap" id="mCat"></div>
+      <div class="mBar">
+        <label><input type="checkbox" id="m-pin"> 📌 맨 위 고정</label>
+        <label id="mDoneWrap"><input type="checkbox" id="m-done"> ✅ 했음</label>
+      </div>
+    </div>
+    <div class="sec">
+      <label class="f">사진</label>
+      <div class="photos" id="mPhotos"></div>
+      <input type="file" id="mPhotoIn" accept="image/*" multiple hidden>
+    </div>
+    <div class="sec" id="mVoiceLog" style="display:none"></div>
+    <div class="grid2" id="mActs">
+      <button class="btn primary" id="mVoice">🎤 말로 덧붙이기</button>
+      <button class="btn" id="mCopy">📋 글로 복사</button>
+      <button class="btn" id="mShare">📤 공유</button>
+      <button class="btn danger" id="mDel">🗑️ 삭제</button>
+    </div>
+  </div>
+</div>
+
 <!-- 말로 기록 -->
 <div class="sheet" id="voiceSheet">
   <div class="top"><button id="vClose">닫기</button><h2>🎤 말로 기록</h2><button id="vSave">저장</button></div>
@@ -251,10 +303,15 @@ label.f{display:flex;align-items:center;justify-content:space-between;font-size:
     <button id="vMic">🎤</button>
     <div id="vState">눌러서 말하기</div>
     <select id="vTarget" style="margin:4px 0 8px"></select>
+    <div class="chips wrap" id="vCats" style="justify-content:center"></div>
     <div id="vInt"></div>
     <textarea id="vText" placeholder="말한 내용이 여기에 적힙니다. 직접 고쳐도 됩니다."></textarea>
     <div class="row" style="margin-top:8px"><button class="btn" id="vClear">지우기</button><button class="btn primary" id="vSave2">저장</button></div>
-    <div class="guide">
+    <div class="guide" id="vGuideMemo">
+      말한 그대로 메모가 됩니다. 첫 줄을 <b>제목</b> … 으로 시작하면 제목이 되고, 아니면 첫 줄이 제목처럼 보입니다.<br>
+      위에서 분류를 고르세요. <b>할 일</b>로 저장하면 목록에서 바로 체크할 수 있습니다.
+    </div>
+    <div class="guide" id="vGuideIdea">
       한 줄씩 끊어 말하면서 줄 맨 앞에 아래 말을 붙이면 그 칸으로 들어갑니다.<br>
       <b>제목</b> 무인 세차장 예약 앱 · <b>요약</b> … · <b>문제는</b> … · <b>해결은</b> … · <b>고객은</b> … ·
       <b>수익은</b> … · <b>차별점은</b> … · <b>필요한 것은</b> … · <b>다음 할 일은</b> … · <b>메모</b> …<br>
@@ -268,7 +325,7 @@ label.f{display:flex;align-items:center;justify-content:space-between;font-size:
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = 'v1.0.1';
+const APP_VERSION = 'v1.1.0';
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -295,42 +352,54 @@ const FIELDS = [
 ];
 const LABEL = Object.fromEntries([['title', '아이템 이름'], ['summary', '한 줄 설명'], ...FIELDS.map(f => [f[0], f[1]])]);
 
-/* ---------- 저장소 (IndexedDB) ---------- */
-const DB = {
-  db: null, mem: new Map(),
+/* ---------- 저장소 (IndexedDB) — ideas: 사업아이템, memos: 메모 (v2에서 추가) ---------- */
+function makeStore(name){
+  return {
+    name, mem: new Map(),
+    tx(mode){ return DBX.db.transaction(name, mode).objectStore(name); },
+    all(){
+      if (!DBX.db) return Promise.resolve([...this.mem.values()]);
+      return new Promise((res, rej) => { const r = this.tx('readonly').getAll(); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+    },
+    put(v){
+      if (!DBX.db) { this.mem.set(v.id, v); return Promise.resolve(); }
+      return new Promise((res, rej) => { const r = this.tx('readwrite').put(v); r.onsuccess = () => res(); r.onerror = () => rej(r.error); });
+    },
+    del(id){
+      if (!DBX.db) { this.mem.delete(id); return Promise.resolve(); }
+      return new Promise((res, rej) => { const r = this.tx('readwrite').delete(id); r.onsuccess = () => res(); r.onerror = () => rej(r.error); });
+    }
+  };
+}
+const DBX = {
+  db: null,
   open(){
     return new Promise(res => {
       try {
-        const r = indexedDB.open('biz-ideas', 1);
-        r.onupgradeneeded = () => r.result.createObjectStore('ideas', {keyPath: 'id'});
+        const r = indexedDB.open('biz-ideas', 2);
+        r.onupgradeneeded = () => {
+          const d = r.result;
+          for (const s of ['ideas', 'memos']) if (!d.objectStoreNames.contains(s)) d.createObjectStore(s, {keyPath: 'id'});
+        };
         r.onsuccess = () => { this.db = r.result; res(); };
         r.onerror = () => res();
       } catch { res(); }
     });
-  },
-  tx(mode){ return this.db.transaction('ideas', mode).objectStore('ideas'); },
-  all(){
-    if (!this.db) return Promise.resolve([...this.mem.values()]);
-    return new Promise((res, rej) => { const r = this.tx('readonly').getAll(); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
-  },
-  put(v){
-    if (!this.db) { this.mem.set(v.id, v); return Promise.resolve(); }
-    return new Promise((res, rej) => { const r = this.tx('readwrite').put(v); r.onsuccess = () => res(); r.onerror = () => rej(r.error); });
-  },
-  del(id){
-    if (!this.db) { this.mem.delete(id); return Promise.resolve(); }
-    return new Promise((res, rej) => { const r = this.tx('readwrite').delete(id); r.onsuccess = () => res(); r.onerror = () => rej(r.error); });
   }
 };
+const DB = makeStore('ideas');
+const MDB = makeStore('memos');
 
 let ideas = [];
+let memos = [];
 let stFilter = '';
 let editing = null;
 let detailId = null;
 const findI = id => ideas.find(x => x.id === id);
 const score = x => SCORES.reduce((s, [k]) => s + (x.scores?.[k] || 0), 0);
 const stars = n => n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '-';
-async function reload(){ ideas = await DB.all(); renderList(); }
+async function reload(){ ideas = await DB.all(); memos = await MDB.all(); renderList(); renderMemos(); }
+const findM = id => memos.find(x => x.id === id);
 
 /* ---------- 음성 인식 ----------
    한 마디(잠깐 쉼)마다 끝나는 방식으로 켜고, 말하는 동안은 끝나면 다시 켠다.
@@ -428,7 +497,7 @@ $('#sort').value = lsGet('sort', 'upd');
 $('#sort').addEventListener('change', () => { lsSet('sort', $('#sort').value); renderList(); });
 
 function renderList(){
-  $('#count').textContent = `${ideas.length}개`;
+  if (curTab === 'list') $('#count').textContent = `${ideas.length}개`;
   const q = $('#q').value.trim().toLowerCase();
   let arr = ideas.filter(x => !stFilter || (x.status || '아이디어') === stFilter);
   if (q) arr = arr.filter(x => ['title', 'summary', 'category', ...FIELDS.map(f => f[0])].some(k => (x[k] || '').toLowerCase().includes(q))
@@ -455,12 +524,17 @@ function renderList(){
 $('#list').onclick = e => { const it = e.target.closest('.item'); if (it) openDetail(it.dataset.id); };
 
 /* ---------- 탭 ---------- */
+let curTab = 'list';
 $$('nav button').forEach(b => b.onclick = () => {
+  curTab = b.dataset.tab;
   $$('nav button').forEach(x => x.classList.toggle('on', x === b));
-  $$('.tab').forEach(t => t.classList.toggle('on', t.id === 'tab-' + b.dataset.tab));
-  const list = b.dataset.tab === 'list';
-  $('#fabMic').style.display = $('#fabAdd').style.display = list ? '' : 'none';
-  if (!list) renderInfo();
+  $$('.tab').forEach(t => t.classList.toggle('on', t.id === 'tab-' + curTab));
+  $('#fabMic').style.display = $('#fabAdd').style.display = curTab === 'set' ? 'none' : '';
+  $('#fabAdd').title = curTab === 'memo' ? '글로 새 메모' : '글로 새 아이템';
+  $('header h1').textContent = curTab === 'memo' ? '📝 메모' : '💡 사업아이템';
+  $('#count').textContent = curTab === 'memo' ? `${memos.length}개` : `${ideas.length}개`;
+  if (curTab === 'set') renderInfo();
+  lsSet('tab', curTab);
 });
 
 /* ---------- 상세 ---------- */
@@ -494,7 +568,7 @@ $('#dBody').onclick = async e => {
   const img = e.target.closest('.gallery img');
   if (img) return showPhoto(x.photos[+img.dataset.i]);
   const id = e.target.id;
-  if (id === 'dVoice') openVoice(x.id);
+  if (id === 'dVoice') openVoice('idea', x.id);
   else if (id === 'dEdit2') openForm(x);
   else if (id === 'dCopy') { await copyText(asText(x)); toast('복사했습니다'); }
   else if (id === 'dShare') {
@@ -548,7 +622,7 @@ function openForm(x){
   pick('#fCat', editing.category); pick('#fStatus', editing.status || '아이디어'); paintStars(); renderPhotos();
   $('#formSheet').classList.add('on'); $('#formSheet').scrollTop = 0;
 }
-$('#fabAdd').onclick = () => openForm(null);
+$('#fabAdd').onclick = () => curTab === 'memo' ? openMemo(null) : openForm(null);
 $('#fCancel').onclick = () => { Voice.stop(); $('#formSheet').classList.remove('on'); editing = null; };
 $('#fSave').onclick = async () => {
   Voice.stop();
@@ -609,18 +683,32 @@ function shrink(file, max = 1280){
   });
 }
 
-/* ---------- 말로 기록 ---------- */
-let vFor = null;   // 덧붙일 아이템 id (없으면 새 아이템)
-function openVoice(forId){
+/* ---------- 말로 기록 (사업아이템 / 메모 공용) ---------- */
+let vMode = 'idea';   // 'idea' | 'memo'
+let vCat = '';        // 메모 분류
+function openVoice(mode, forId){
   Voice.stop();
-  vFor = forId || null;
+  vMode = mode;
   $('#vText').value = ''; $('#vInt').textContent = '';
-  $('#vTarget').innerHTML = `<option value="">➕ 새 아이템으로 저장</option>` + [...ideas].sort((a, b) => b.updated - a.updated)
-    .map(x => `<option value="${x.id}">➜ ${esc(x.title || '(이름 없음)')}에 덧붙이기</option>`).join('');
-  $('#vTarget').value = vFor || '';
+  const memo = mode === 'memo';
+  const arr = (memo ? memos : ideas).slice().sort((a, b) => (b.updated || 0) - (a.updated || 0));
+  $('#vTarget').innerHTML = `<option value="">➕ ${memo ? '새 메모' : '새 아이템'}으로 저장</option>`
+    + arr.map(x => `<option value="${x.id}">➜ ${esc(memo ? memoTitle(x) : x.title || '(이름 없음)')}에 덧붙이기</option>`).join('');
+  $('#vTarget').value = forId || '';
+  vCat = memo ? (forId ? findM(forId)?.category || '' : mFilter || '') : '';
+  $('#vCats').innerHTML = memo ? MCATS.map(c => `<button class="chip${c === vCat ? ' on' : ''}" data-v="${c}">${c}</button>`).join('') : '';
+  $('#vCats').style.display = memo ? '' : 'none';
+  $('#vGuideMemo').style.display = memo ? '' : 'none';
+  $('#vGuideIdea').style.display = memo ? 'none' : '';
+  $('#voiceSheet h2').textContent = memo ? '🎤 말로 메모' : '🎤 말로 기록';
   $('#voiceSheet').classList.add('on');
   vListen();
 }
+$('#vCats').onclick = e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  vCat = vCat === c.dataset.v ? '' : c.dataset.v;
+  $$('#vCats .chip').forEach(b => b.classList.toggle('on', b.dataset.v === vCat));
+};
 function vListen(){
   Voice.start('voice', {
     final: t => { const ta = $('#vText'); ta.value = ta.value ? ta.value.replace(/\s*$/, '') + '\n' + t : t; ta.scrollTop = ta.scrollHeight; },
@@ -628,7 +716,7 @@ function vListen(){
     state: on => { $('#vMic').classList.toggle('rec', on); $('#vState').textContent = on ? '듣고 있어요… 말을 마치면 🎤를 눌러 멈추세요' : '눌러서 말하기'; }
   });
 }
-$('#fabMic').onclick = () => openVoice(null);
+$('#fabMic').onclick = () => openVoice(curTab === 'memo' ? 'memo' : 'idea', null);
 $('#vMic').onclick = () => { if (Voice.on) Voice.stop(); else vListen(); };
 $('#vClear').onclick = () => { $('#vText').value = ''; };
 $('#vClose').onclick = () => { Voice.stop(); $('#voiceSheet').classList.remove('on'); };
@@ -637,6 +725,7 @@ $('#vSave').onclick = $('#vSave2').onclick = async () => {
   await new Promise(r => setTimeout(r, 300));   // 멈출 때 마지막 말이 늦게 들어오는 것을 기다림
   const text = $('#vText').value.trim();
   if (!text) { toast('적힌 내용이 없습니다'); return; }
+  if (vMode === 'memo') return saveVoiceMemo(text);
   const p = parseSpeech(text);
   const tid = $('#vTarget').value;
   let x = tid && findI(tid);
@@ -660,10 +749,162 @@ $('#vSave').onclick = $('#vSave2').onclick = async () => {
   toast(tid ? '덧붙였습니다' : n ? `저장했습니다 (${n}개 칸에 나눠 넣음)` : '저장했습니다');
 };
 
+/* ---------- 메모 ---------- */
+const MCATS = ['업무', '개인', '할 일', '쇼핑', '기타'];
+let mFilter = '';
+let mEditing = null;
+const memoTitle = x => x.title || (x.text || '').split('\n')[0].slice(0, 40) || '(빈 메모)';
+
+$('#mChips').innerHTML = [['', '전체'], ...MCATS.map(c => [c, c])].map(([v, t]) => `<button class="chip${v ? '' : ' on'}" data-c="${v}">${t}</button>`).join('');
+$('#mChips').onclick = e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  mFilter = b.dataset.c; $$('#mChips .chip').forEach(c => c.classList.toggle('on', c === b)); renderMemos();
+};
+$('#mq').addEventListener('input', renderMemos);
+
+function renderMemos(){
+  if (curTab === 'memo') $('#count').textContent = `${memos.length}개`;
+  const q = $('#mq').value.trim().toLowerCase();
+  let arr = memos.filter(x => !mFilter || x.category === mFilter);
+  if (q) arr = arr.filter(x => `${x.title || ''}\n${x.text || ''}`.toLowerCase().includes(q));
+  // 고정 → 안 한 일 → 최근 고친 순
+  arr.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (a.done ? 1 : 0) - (b.done ? 1 : 0) || (b.updated || 0) - (a.updated || 0));
+  if (!arr.length) {
+    $('#mList').innerHTML = `<div class="empty">${memos.length ? '찾는 메모가 없습니다' : '아직 메모가 없습니다.<br><b>🎤</b>를 누르고 말하면 바로 메모가 됩니다.<br>글로 적으려면 <b>＋</b>'}</div>`;
+    return;
+  }
+  $('#mList').innerHTML = arr.map(x => {
+    const body = x.title ? x.text || '' : (x.text || '').split('\n').slice(1).join('\n');
+    return `<div class="memo${x.done ? ' done' : ''}" data-id="${x.id}">
+      ${x.category === '할 일' ? `<input type="checkbox" class="ck"${x.done ? ' checked' : ''}>` : ''}
+      <div class="mt"><b>${esc(memoTitle(x))}</b>${body.trim() ? `<div class="pv">${esc(body.trim())}</div>` : ''}
+        <div class="mm">${x.category ? `<span>${esc(x.category)}</span>` : ''}${(x.photos || []).length ? `<span>📷 ${x.photos.length}</span>` : ''}
+          ${(x.voice || []).length ? `<span>🎙️</span>` : ''}<span>${fmtDT(x.updated || x.created)}</span></div></div>
+      ${x.pinned ? '<span class="pin">📌</span>' : ''}
+    </div>`;
+  }).join('');
+}
+$('#mList').onclick = async e => {
+  const row = e.target.closest('.memo'); if (!row) return;
+  const x = findM(row.dataset.id); if (!x) return;
+  if (e.target.classList.contains('ck')) {   // 할 일 체크
+    x.done = e.target.checked; x.updated = Date.now(); await MDB.put(x); renderMemos();
+    toast(x.done ? '했음으로 표시했습니다' : '다시 할 일로 돌렸습니다');
+    return;
+  }
+  openMemo(x);
+};
+
+$('#mCat').innerHTML = MCATS.map(c => `<button class="chip" data-v="${c}">${c}</button>`).join('');
+$('#mCat').onclick = e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  mEditing.category = mEditing.category === c.dataset.v ? '' : c.dataset.v; paintMemoCat();
+};
+function paintMemoCat(){
+  $$('#mCat .chip').forEach(c => c.classList.toggle('on', c.dataset.v === mEditing.category));
+  $('#mDoneWrap').style.display = mEditing.category === '할 일' ? '' : 'none';
+}
+function openMemo(x){
+  Voice.stop();
+  mEditing = x ? JSON.parse(JSON.stringify(x)) : {id: null, title: '', text: '', category: mFilter || '', pinned: false, done: false, photos: [], voice: []};
+  mEditing.photos ||= []; mEditing.voice ||= [];
+  $('#mTitle').textContent = x ? '메모' : '새 메모';
+  $('#m-title').value = mEditing.title || ''; $('#m-text').value = mEditing.text || '';
+  $('#m-pin').checked = !!mEditing.pinned; $('#m-done').checked = !!mEditing.done;
+  paintMemoCat(); renderMemoPhotos();
+  $('#mVoiceLog').style.display = mEditing.voice.length ? '' : 'none';
+  $('#mVoiceLog').innerHTML = `<label class="f">🎙️ 말로 남긴 기록 (원문)</label>` + [...mEditing.voice].reverse().map(v =>
+    `<div class="vlog"><small>${fmtDT(v.t)}</small>${esc(v.text)}</div>`).join('');
+  $('#mActs').style.display = x ? '' : 'none';
+  $('#memoSheet').classList.add('on'); $('#memoSheet').scrollTop = 0;
+  if (!x) setTimeout(() => $('#m-text').focus(), 50);
+}
+function readMemoForm(){
+  const x = mEditing;
+  x.title = $('#m-title').value.trim(); x.text = $('#m-text').value.replace(/\s+$/, '');
+  x.pinned = $('#m-pin').checked; x.done = x.category === '할 일' && $('#m-done').checked;
+  return x;
+}
+$('#mCancel').onclick = () => { Voice.stop(); $('#memoSheet').classList.remove('on'); mEditing = null; };
+$('#mSave').onclick = async () => {
+  Voice.stop();
+  const x = readMemoForm();
+  if (!x.title && !x.text.trim() && !x.photos.length) { toast('내용을 적어 주세요'); return; }
+  const isNew = !x.id;
+  if (isNew) { x.id = uid(); x.created = Date.now(); }
+  x.updated = Date.now();
+  try { await MDB.put(x); } catch { toast('저장 실패: 저장 공간이 부족할 수 있습니다'); return; }
+  $('#memoSheet').classList.remove('on'); mEditing = null;
+  await reload(); toast(isNew ? '메모를 저장했습니다' : '고쳤습니다');
+};
+$('#mActs').onclick = async e => {
+  const id = e.target.id, x = mEditing; if (!x?.id) return;
+  const txt = () => { const y = readMemoForm(); return (y.title ? y.title + '\n' : '') + y.text; };
+  if (id === 'mVoice') { Voice.stop(); $('#memoSheet').classList.remove('on'); openVoice('memo', x.id); }
+  else if (id === 'mCopy') { await copyText(txt()); toast('복사했습니다'); }
+  else if (id === 'mShare') {
+    if (navigator.share) navigator.share({title: memoTitle(x), text: txt()}).catch(() => {});
+    else { await copyText(txt()); toast('공유가 안 되는 기기라 복사했습니다'); }
+  } else if (id === 'mDel') {
+    if (!confirmTwice(e.target, '한 번 더 누르면 삭제합니다')) return;
+    await MDB.del(x.id); $('#memoSheet').classList.remove('on'); mEditing = null; await reload(); toast('삭제했습니다');
+  }
+};
+// 메모 칸 🎤
+$('#memoSheet').addEventListener('click', e => {
+  const b = e.target.closest('.mic'); if (!b) return;
+  e.preventDefault();
+  const k = b.dataset.f;
+  if (Voice.on && Voice.key === k) { Voice.stop(); return; }
+  const el = $('#' + k), name = k === 'm-title' ? '제목' : '내용';
+  Voice.start(k, {
+    final: t => { el.value = el.value ? el.value.replace(/\s+$/, '') + (el.tagName === 'INPUT' ? ' ' : '\n') + t : t; if (el.tagName === 'TEXTAREA') el.scrollTop = el.scrollHeight; },
+    interim: t => { $('#liveBar').textContent = t ? `🎤 ${t}` : `🎤 ${name}에 받아 적는 중… (🎤 다시 누르면 멈춤)`; },
+    state: on => {
+      $$('#memoSheet .mic').forEach(m => m.classList.toggle('rec', on && m.dataset.f === k));
+      $('#liveBar').classList.toggle('on', on);
+      if (on) $('#liveBar').textContent = `🎤 ${name}에 받아 적는 중… (🎤 다시 누르면 멈춤)`;
+    }
+  });
+});
+function renderMemoPhotos(){
+  $('#mPhotos').innerHTML = mEditing.photos.map((p, i) => `<div class="ph"><img src="${p}" alt=""><button data-x="${i}">✕</button></div>`).join('')
+    + `<button class="addPh" id="mAddPh"><i>📷</i>사진 추가</button>`;
+}
+$('#mPhotos').onclick = e => {
+  if (e.target.closest('#mAddPh')) return $('#mPhotoIn').click();
+  const x = e.target.closest('[data-x]'); if (x) { mEditing.photos.splice(+x.dataset.x, 1); renderMemoPhotos(); return; }
+  const img = e.target.closest('img'); if (img) showPhoto(img.src);
+};
+$('#mPhotoIn').addEventListener('change', async e => {
+  for (const f of e.target.files) { try { mEditing.photos.push(await shrink(f)); } catch { toast('사진을 읽지 못했습니다'); } }
+  e.target.value = ''; renderMemoPhotos();
+});
+async function saveVoiceMemo(text){
+  const now = Date.now(), tid = $('#vTarget').value;
+  let title = '', body = text;
+  const m = /^제목(?:은|는)?\s*[:：]?\s*(.+)$/m.exec(text.split('\n')[0]);
+  if (m) { title = m[1].trim(); body = text.split('\n').slice(1).join('\n'); }
+  let x = tid && findM(tid);
+  if (x) {
+    x = JSON.parse(JSON.stringify(x));
+    if (!x.title && title) x.title = title;
+    x.text = x.text ? x.text.replace(/\s+$/, '') + '\n' + body : body;
+    if (vCat) x.category = vCat;
+  } else x = {id: uid(), created: now, title, text: body, category: vCat, pinned: false, done: false, photos: []};
+  x.voice = [...(x.voice || []), {t: now, text}];
+  x.updated = now;
+  await MDB.put(x);
+  $('#voiceSheet').classList.remove('on');
+  await reload();
+  toast(tid ? '메모에 덧붙였습니다' : '메모를 저장했습니다');
+}
+
 /* ---------- PC·폰 동기화 (GitHub 비공개 저장소, 아이템 하나 = ideas/<id>.json) ----------
    명함미팅과 같은 저장소·토큰을 쓴다(폴더만 다름). 판정 방식도 명함미팅과 같음:
    원격만 바뀜 → 받기 / 이 기기만 바뀜 → 올리기 / 둘 다 → updated 가 큰 쪽 / 지운 것은 양쪽에서 지움 */
-const DIR = 'ideas';
+// [저장소 폴더, 이 기기 저장소, 지난 동기화 상태 키] — 메모는 v1.1.0에서 추가
+const COLS = [['ideas', DB, 'syncState'], ['memos', MDB, 'syncState.memos']];
 const Sync = {
   busy: false, again: false, timer: null, last: 0,
   cfg(){
@@ -689,24 +930,25 @@ const Sync = {
     for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
     return btoa(bin);
   },
-  async remote(){
-    const map = new Map();
+  async remote(){   // 폴더 → (id → sha)
+    const maps = Object.fromEntries(COLS.map(([dir]) => [dir, new Map()]));
     try {
       const t = await (await this.api('git/trees/main?recursive=1')).json();
       for (const e of t.tree || []) {
-        const m = new RegExp(`^${DIR}/(.+)\\.json$`).exec(e.path);
-        if (m && e.type === 'blob') map.set(m[1], e.sha);
+        const m = /^([^/]+)\/(.+)\.json$/.exec(e.path);
+        if (m && e.type === 'blob' && maps[m[1]]) maps[m[1]].set(m[2], e.sha);
       }
     } catch (e) { if (e.status !== 404 && e.status !== 409) throw e; }
-    return map;
+    return maps;
   },
   async get(sha){ return JSON.parse(await (await this.api(`git/blobs/${sha}`, {headers: {Accept: 'application/vnd.github.raw+json'}})).text()); },
-  async put(x, sha){
-    const body = {message: `💡 ${x.title || x.id}`, content: this.b64(JSON.stringify(x)), branch: 'main'};
+  async put(dir, x, sha){
+    const name = dir === 'memos' ? `📝 ${memoTitle(x)}` : `💡 ${x.title || x.id}`;
+    const body = {message: name, content: this.b64(JSON.stringify(x)), branch: 'main'};
     if (sha) body.sha = sha;
-    return (await (await this.api(`contents/${DIR}/${x.id}.json`, {method: 'PUT', body: JSON.stringify(body)})).json()).content.sha;
+    return (await (await this.api(`contents/${dir}/${x.id}.json`, {method: 'PUT', body: JSON.stringify(body)})).json()).content.sha;
   },
-  async del(id, sha){ await this.api(`contents/${DIR}/${id}.json`, {method: 'DELETE', body: JSON.stringify({message: `💡 삭제 ${id}`, sha, branch: 'main'})}); },
+  async del(dir, id, sha){ await this.api(`contents/${dir}/${id}.json`, {method: 'DELETE', body: JSON.stringify({message: `삭제 ${dir}/${id}`, sha, branch: 'main'})}); },
   soon(){ if (!this.cfg()) return; clearTimeout(this.timer); this.timer = setTimeout(() => this.run(), 2500); },
   async run(manual){
     if (!this.cfg()) return;
@@ -714,30 +956,32 @@ const Sync = {
     this.busy = true; this.status('동기화 중…');
     let up = 0, down = 0, gone = 0;
     try {
-      const state = lsGet('syncState', {});
-      const rem = await this.remote();
-      const local = new Map((await DB.all()).map(x => [x.id, x]));
-      for (const [id, x] of local) {
-        const st = state[id], rsha = rem.get(id), mu = x.updated || 0;
-        if (rsha) {
-          if (st && st.sha === rsha) {
-            if (mu > (st.updated || 0)) { state[id] = {sha: await this.put(x, rsha), updated: mu}; up++; }
-          } else {
-            const r = await this.get(rsha), ru = r.updated || 0;
-            if (ru > mu) { await DB.put(r); state[id] = {sha: rsha, updated: ru}; down++; }
-            else if (mu > ru) { state[id] = {sha: await this.put(x, rsha), updated: mu}; up++; }
-            else state[id] = {sha: rsha, updated: mu};
-          }
-        } else if (st && mu <= (st.updated || 0)) { await DB.del(id); delete state[id]; gone++; }
-        else { state[id] = {sha: await this.put(x), updated: mu}; up++; }
+      const remAll = await this.remote();
+      for (const [dir, store, key] of COLS) {
+        const state = lsGet(key, {}), rem = remAll[dir];
+        const local = new Map((await store.all()).map(x => [x.id, x]));
+        for (const [id, x] of local) {
+          const st = state[id], rsha = rem.get(id), mu = x.updated || 0;
+          if (rsha) {
+            if (st && st.sha === rsha) {
+              if (mu > (st.updated || 0)) { state[id] = {sha: await this.put(dir, x, rsha), updated: mu}; up++; }
+            } else {
+              const r = await this.get(rsha), ru = r.updated || 0;
+              if (ru > mu) { await store.put(r); state[id] = {sha: rsha, updated: ru}; down++; }
+              else if (mu > ru) { state[id] = {sha: await this.put(dir, x, rsha), updated: mu}; up++; }
+              else state[id] = {sha: rsha, updated: mu};
+            }
+          } else if (st && mu <= (st.updated || 0)) { await store.del(id); delete state[id]; gone++; }
+          else { state[id] = {sha: await this.put(dir, x), updated: mu}; up++; }
+        }
+        for (const [id, rsha] of rem) {
+          if (local.has(id)) continue;
+          const st = state[id];
+          if (st && st.sha === rsha) { await this.del(dir, id, rsha); delete state[id]; gone++; }
+          else { const r = await this.get(rsha); await store.put(r); state[id] = {sha: rsha, updated: r.updated || 0}; down++; }
+        }
+        lsSet(key, state);
       }
-      for (const [id, rsha] of rem) {
-        if (local.has(id)) continue;
-        const st = state[id];
-        if (st && st.sha === rsha) { await this.del(id, rsha); delete state[id]; gone++; }
-        else { const r = await this.get(rsha); await DB.put(r); state[id] = {sha: rsha, updated: r.updated || 0}; down++; }
-      }
-      lsSet('syncState', state);
       this.last = Date.now(); lsSet('syncLast', this.last);
       if (down || gone) { await reload(); if (detailId) renderDetail(); }
       const msg = [up && `올림 ${up}`, down && `받음 ${down}`, gone && `지움 ${gone}`].filter(Boolean).join(' · ');
@@ -763,21 +1007,21 @@ const Sync = {
     else { const l = lsGet('syncLast', 0); this.status(`켜짐 (${c.repo}${c.shared ? ', 명함미팅 연결 같이 씀' : ''})${l ? ' · 마지막 동기화 ' + new Date(l).toLocaleString('ko-KR') : ''}`); }
   }
 };
-for (const k of ['put', 'del']) {
-  const orig = DB[k].bind(DB);
-  DB[k] = async v => { await orig(v); if (!Sync.busy) Sync.soon(); };
+for (const store of [DB, MDB]) for (const k of ['put', 'del']) {
+  const orig = store[k].bind(store);
+  store[k] = async v => { await orig(v); if (!Sync.busy) Sync.soon(); };
 }
 $('#btnSyncOn').onclick = async () => {
   const repo = $('#syncRepo').value.trim().replace(/^https:\/\/github\.com\//, '').replace(/\.git$|\/$/g, ''), token = $('#syncToken').value.trim();
   if (!/^[\w.-]+\/[\w.-]+$/.test(repo) || !token) { toast('저장소(이름/저장소)와 토큰을 넣어 주세요'); return; }
-  lsSet('syncCfg', {repo, token}); lsSet('syncState', {});
+  lsSet('syncCfg', {repo, token}); for (const [, , key] of COLS) lsSet(key, {});
   $('#syncToken').value = ''; Sync.show(); await Sync.run(true);
   if ($('#syncStatus').textContent.startsWith('⚠️')) { lsSet('syncCfg', {off: true}); Sync.show(); $('#syncRepo').value = repo; toast('연결 실패 — 토큰·저장소를 확인해 주세요'); }
 };
 $('#btnSyncNow').onclick = () => Sync.run(true);
 $('#btnSyncOff').onclick = () => {
   if (!confirmTwice($('#btnSyncOff'), '한 번 더 누르면 연결을 끊습니다')) return;
-  lsSet('syncCfg', {off: true}); lsSet('syncState', {}); Sync.show(); toast('연결을 끊었습니다 (이 기기 기록은 그대로)');
+  lsSet('syncCfg', {off: true}); for (const [, , key] of COLS) lsSet(key, {}); Sync.show(); toast('연결을 끊었습니다 (이 기기 기록은 그대로)');
 };
 
 /* ---------- 백업 · CSV ---------- */
@@ -788,7 +1032,7 @@ function download(name, text, type){
 }
 const today = () => { const d = new Date(); return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`; };
 $('#btnExport').onclick = () => {
-  download(`사업아이템_백업_${today()}.json`, JSON.stringify({app: 'biz-ideas', version: APP_VERSION, exported: Date.now(), ideas}), 'application/json');
+  download(`사업아이템_백업_${today()}.json`, JSON.stringify({app: 'biz-ideas', version: APP_VERSION, exported: Date.now(), ideas, memos}), 'application/json');
   lsSet('lastBackup', Date.now()); renderInfo(); toast('백업 파일을 내려받았습니다');
 };
 $('#btnImport').onclick = () => $('#importFile').click();
@@ -799,11 +1043,11 @@ $('#importFile').addEventListener('change', async e => {
     const arr = Array.isArray(data) ? data : data.ideas;
     if (!Array.isArray(arr)) throw 0;
     let add = 0, upd = 0;
-    for (const x of arr) {
+    for (const [list, store, find] of [[arr, DB, findI], [data.memos || [], MDB, findM]]) for (const x of list) {
       if (!x || !x.id) continue;
-      const cur = findI(x.id);
-      if (!cur) { await DB.put(x); add++; }
-      else if ((x.updated || 0) > (cur.updated || 0)) { await DB.put(x); upd++; }
+      const cur = find(x.id);
+      if (!cur) { await store.put(x); add++; }
+      else if ((x.updated || 0) > (cur.updated || 0)) { await store.put(x); upd++; }
     }
     await reload(); toast(`불러오기 완료: 새로 ${add}건 · 갱신 ${upd}건`);
   } catch { toast('백업 파일이 아니거나 읽을 수 없습니다'); }
@@ -842,7 +1086,7 @@ function showInstall(){
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; showInstall(); });
 window.addEventListener('appinstalled', () => { installEvt = null; $('#installBar').style.display = 'none'; toast('설치했습니다 — 홈 화면의 💡 사업아이템 아이콘으로 여세요'); });
 async function doInstall(){
-  if (!installEvt) { $$('nav button')[1].click(); toast(installHint().replace(/<[^>]+>/g, '')); return; }
+  if (!installEvt) { $('nav button[data-tab=set]').click(); toast(installHint().replace(/<[^>]+>/g, '')); return; }
   installEvt.prompt(); await installEvt.userChoice; installEvt = null; showInstall();
 }
 $('#btnInstall1').onclick = $('#btnInstall2').onclick = doInstall;
@@ -854,7 +1098,7 @@ function applyTheme(){ const t = lsGet('theme', ''); if (t) document.documentEle
 $('#theme').addEventListener('change', () => { lsSet('theme', $('#theme').value); applyTheme(); });
 async function renderInfo(){
   const v = ideas.reduce((n, x) => n + (x.voice || []).length, 0);
-  let t = `사업아이템 ${APP_VERSION} · 아이템 ${ideas.length}개 · 음성 기록 ${v}건`;
+  let t = `사업아이템 ${APP_VERSION} · 아이템 ${ideas.length}개 · 메모 ${memos.length}개 · 음성 기록 ${v + memos.reduce((n, x) => n + (x.voice || []).length, 0)}건`;
   const lb = lsGet('lastBackup', 0);
   t += `<br>마지막 백업: ${lb ? new Date(lb).toLocaleString('ko-KR') : '없음'}`;
   t += `<br>음성 인식: ${SR ? '사용 가능 (인터넷 필요)' : '이 브라우저는 안 됨 — 키보드의 🎤 음성 입력 사용'}`;
@@ -898,8 +1142,10 @@ window.addEventListener('popstate', () => {
 
 (async () => {
   applyTheme();
-  await DB.open();
+  await DBX.open();
   await reload();
+  const t0 = lsGet('tab', 'list');   // 마지막에 보던 탭(아이템/메모)으로 열기
+  if (t0 === 'memo') $('nav button[data-tab=memo]').click();
   try { navigator.storage?.persist?.(); } catch {}
   history.pushState(null, '');
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {

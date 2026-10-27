@@ -1,6 +1,6 @@
 // 오프라인 캐시. 앱 파일을 고치면 VERSION을 올릴 것.
 // 명함미팅과 같은 주소라 캐시 이름은 'biz-ideas-' 로 구분하고, 지울 때도 이 이름만 지운다.
-const VERSION = 'v1.0.1';
+const VERSION = 'v1.1.0';
 const APP = 'biz-ideas-' + VERSION;
 const CORE = [
   './', './index.html', './manifest.webmanifest',
