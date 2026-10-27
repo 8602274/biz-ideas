@@ -142,6 +142,11 @@ label.f{display:flex;align-items:center;justify-content:space-between;font-size:
 
 <main>
   <section class="tab on" id="tab-list">
+    <div class="panel" id="installBar" style="display:none">
+      <b>📲 홈 화면에 앱으로 설치</b>
+      <p class="hint" style="margin:4px 0 8px">아이콘을 누르면 바로 열리고, 기록도 안전하게 보관됩니다.</p>
+      <div class="row"><button class="btn primary" id="btnInstall1">설치하기</button><button class="btn" id="btnInstallLater">나중에</button></div>
+    </div>
     <div class="tools">
       <input id="q" type="search" placeholder="🔍 이름·내용 검색">
       <select id="sort">
@@ -179,6 +184,11 @@ label.f{display:flex;align-items:center;justify-content:space-between;font-size:
       </div>
       <button class="btn block" id="btnCsv" style="margin-top:8px">엑셀(CSV)로 내려받기</button>
       <input type="file" id="importFile" accept=".json,application/json" hidden>
+    </div>
+    <div class="panel">
+      <h3>앱으로 설치</h3>
+      <button class="btn primary block" id="btnInstall2" style="display:none;margin-bottom:10px">📲 이 기기에 앱 설치</button>
+      <p class="hint" id="installHint"></p>
     </div>
     <div class="panel">
       <h3>화면</h3>
@@ -258,7 +268,7 @@ label.f{display:flex;align-items:center;justify-content:space-between;font-size:
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = 'v1.0.0';
+const APP_VERSION = 'v1.0.1';
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -807,6 +817,37 @@ $('#btnCsv').onclick = () => {
   for (const x of [...ideas].sort((a, b) => (b.updated || 0) - (a.updated || 0))) rows.push(cols.map(c => q(val(x, c[0]))).join(','));
   download(`사업아이템_${today()}.csv`, '﻿' + rows.join('\r\n'), 'text/csv');
 };
+
+/* ---------- 앱으로 설치 — 브라우저 메뉴를 못 찾아도 앱 안 버튼으로 ---------- */
+const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+const ua = navigator.userAgent;
+const inApp = /KAKAOTALK|NAVER|Instagram|FBAN|FBAV|Line\/|; wv\)/i.test(ua);   // 카톡·네이버 등 앱 안 브라우저
+let installEvt = null;
+function installHint(){
+  if (standalone) return '이미 앱으로 설치되어 열려 있습니다.';
+  if (inApp) return '지금은 다른 앱 안의 화면이라 설치가 안 됩니다. 오른쪽 위(또는 아래) ⋮ / ··· 메뉴 → <b>다른 브라우저로 열기</b>(크롬) 를 누른 뒤 다시 여세요.';
+  if (/SamsungBrowser/.test(ua)) return '삼성 인터넷: 아래쪽 메뉴(☰) → <b>현재 페이지 추가</b> → <b>홈 화면</b>';
+  if (/iPhone|iPad/.test(ua)) return '사파리: 아래쪽 공유 버튼(□↑) → <b>홈 화면에 추가</b>';
+  if (/Android/.test(ua)) return '크롬: 오른쪽 위 ⋮ → <b>홈 화면에 추가</b>(또는 앱 설치). ⋮ 가 안 보이면 크롬 앱을 직접 열고 주소창에 <b>8602274.github.io/biz-ideas</b> 입력';
+  return '크롬: 주소창 오른쪽 설치 아이콘(⊕) 또는 ⋮ → 앱 설치';
+}
+function showInstall(){
+  $('#installHint').innerHTML = installHint();
+  $('#btnInstall2').style.display = installEvt ? 'block' : 'none';
+  const later = lsGet('installLater', 0);
+  const mobile = /Android|iPhone|iPad/.test(ua);
+  $('#installBar').style.display = !standalone && mobile && Date.now() - later > 7 * 86400000 && (installEvt || inApp) ? '' : 'none';
+  $('#btnInstall1').textContent = installEvt ? '설치하기' : '방법 보기';
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; showInstall(); });
+window.addEventListener('appinstalled', () => { installEvt = null; $('#installBar').style.display = 'none'; toast('설치했습니다 — 홈 화면의 💡 사업아이템 아이콘으로 여세요'); });
+async function doInstall(){
+  if (!installEvt) { $$('nav button')[1].click(); toast(installHint().replace(/<[^>]+>/g, '')); return; }
+  installEvt.prompt(); await installEvt.userChoice; installEvt = null; showInstall();
+}
+$('#btnInstall1').onclick = $('#btnInstall2').onclick = doInstall;
+$('#btnInstallLater').onclick = () => { lsSet('installLater', Date.now()); $('#installBar').style.display = 'none'; };
+showInstall();
 
 /* ---------- 화면 · 정보 · 업데이트 ---------- */
 function applyTheme(){ const t = lsGet('theme', ''); if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; $('#theme').value = t; }
