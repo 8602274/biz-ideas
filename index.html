@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#c2410c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="사업아이템">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>사업아이템</title>
+<style>
+:root{
+  --bg:#f6f4f1; --card:#ffffff; --text:#1f1b16; --sub:#6b6359; --line:#e7e1d8;
+  --accent:#c2410c; --accent-soft:#ffedd5; --warn:#b45309; --danger:#b91c1c; --ok:#15803d; --rec:#dc2626;
+  --shadow:0 1px 3px rgba(0,0,0,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15120f; --card:#211c17; --text:#efe9e1; --sub:#a59b8f; --line:#352d25;
+    --accent:#fb923c; --accent-soft:#3b2412; --warn:#fbbf24; --danger:#f87171; --ok:#4ade80; --rec:#f87171;
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15120f; --card:#211c17; --text:#efe9e1; --sub:#a59b8f; --line:#352d25;
+  --accent:#fb923c; --accent-soft:#3b2412; --warn:#fbbf24; --danger:#f87171; --ok:#4ade80; --rec:#f87171;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;font-size:16px}
+body{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:20;background:var(--bg);padding:14px 16px 8px;display:flex;align-items:center;justify-content:space-between}
+header h1{font-size:20px;margin:0}
+header .count{color:var(--sub);font-size:14px}
+main{max-width:720px;margin:0 auto;padding:0 16px}
+.tab{display:none}.tab.on{display:block}
+input,select,textarea{font:inherit;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+textarea{min-height:76px;resize:vertical;line-height:1.6}
+.tools{display:flex;gap:8px;margin-bottom:10px}
+.tools input{flex:2;min-width:0}.tools select{flex:1;min-width:0}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;scrollbar-width:none;flex-wrap:nowrap}
+.chips.wrap{flex-wrap:wrap;overflow:visible}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:6px 12px;font-size:14px;cursor:pointer;font-family:inherit}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* 목록 */
+.item{background:var(--card);border-radius:14px;padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow);cursor:pointer}
+.item .t{display:flex;gap:6px;align-items:center}
+.item .t b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:16px}
+.item .s{font-size:14px;color:var(--sub);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .m{font-size:12px;color:var(--sub);margin-top:6px;display:flex;gap:10px;flex-wrap:wrap}
+.badge{flex:none;font-size:11px;background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:2px 7px;font-weight:700}
+.badge.보류{background:transparent;color:var(--warn);border:1px solid var(--warn)}
+.badge.접음{background:transparent;color:var(--sub);border:1px solid var(--line)}
+.badge.진행중{background:var(--accent);color:#fff}
+.empty{text-align:center;color:var(--sub);padding:60px 10px;line-height:1.8}
+
+/* 공통 */
+.panel{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+.panel h3{margin:0 0 10px;font-size:15px}
+.btn{display:inline-block;border:0;border-radius:10px;padding:11px 14px;font:inherit;font-weight:600;cursor:pointer;background:var(--accent-soft);color:var(--accent);text-align:center;text-decoration:none}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.danger{background:transparent;color:var(--danger);border:1px solid var(--danger)}
+.btn.block{width:100%}
+.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
+.hint{font-size:13px;color:var(--sub);line-height:1.6}
+.hint a{color:var(--accent)}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;color:var(--sub);font:inherit;font-size:12px;padding:8px 0 10px;cursor:pointer}
+nav button i{display:block;font-style:normal;font-size:20px}
+nav button.on{color:var(--accent);font-weight:700}
+.fab{position:fixed;right:18px;z-index:31;border-radius:50%;border:0;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.25);cursor:pointer}
+#fabMic{bottom:calc(84px + env(safe-area-inset-bottom));width:66px;height:66px;font-size:30px;background:var(--accent)}
+#fabAdd{bottom:calc(160px + env(safe-area-inset-bottom));width:48px;height:48px;font-size:26px;background:var(--sub)}
+.toast{position:fixed;left:50%;bottom:170px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:99;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.on{opacity:.93}
+
+/* 시트 */
+.sheet{position:fixed;inset:0;z-index:50;background:var(--bg);overflow-y:auto;display:none}
+.sheet.on{display:block}
+#formSheet{z-index:60}#voiceSheet{z-index:70}#photoView{z-index:80}
+.sheet .top{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+.sheet .top h2{font-size:17px;margin:0}
+.sheet .top button{border:0;background:none;color:var(--accent);font:inherit;font-weight:700;padding:6px;cursor:pointer}
+.sheet .body{max-width:720px;margin:0 auto;padding:16px 16px 60px}
+.sec{background:var(--card);border-radius:14px;padding:4px 14px 14px;margin-bottom:12px;box-shadow:var(--shadow)}
+label.f{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--sub);margin:12px 0 6px;font-weight:700}
+.mic{border:1px solid var(--line);background:var(--card);border-radius:999px;font-size:13px;padding:3px 10px;cursor:pointer;color:var(--text);font-family:inherit}
+.mic.rec{background:var(--rec);border-color:var(--rec);color:#fff;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.6}}
+.stars{display:flex;align-items:center;gap:6px;margin:6px 0}
+.stars span{width:64px;font-size:13px;color:var(--sub);font-weight:700}
+.stars button{border:0;background:none;font-size:24px;padding:0 2px;cursor:pointer;color:var(--line);line-height:1}
+.stars button.on{color:#f59e0b}
+.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.photos .ph{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--accent-soft)}
+.photos .ph img{width:100%;height:100%;object-fit:cover;cursor:zoom-in}
+.photos .ph button{position:absolute;top:3px;right:3px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:13px;padding:0;cursor:pointer}
+.addPh{aspect-ratio:1;border:2px dashed var(--line);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;color:var(--sub);cursor:pointer;background:none;font-family:inherit}
+.addPh i{font-style:normal;font-size:24px}
+#liveBar{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:90;background:var(--rec);color:#fff;border-radius:12px;padding:10px 14px;font-size:14px;display:none;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+#liveBar.on{display:block}
+
+/* 상세 */
+.dTitle{font-size:22px;font-weight:800;margin:0 0 4px}
+.dSum{color:var(--sub);font-size:15px;margin-bottom:8px;line-height:1.6}
+.dMeta{color:var(--sub);font-size:13px;line-height:1.9}
+.blk{background:var(--card);border-radius:12px;padding:12px 14px;margin:10px 0;box-shadow:var(--shadow)}
+.blk h4{margin:0 0 6px;font-size:13px;color:var(--accent)}
+.blk .tx{white-space:pre-wrap;line-height:1.7;word-break:break-word}
+.vlog{border-top:1px solid var(--line);padding:8px 0;font-size:14px;line-height:1.6;white-space:pre-wrap}
+.vlog:first-of-type{border-top:0}
+.vlog small{display:block;color:var(--sub);font-size:12px}
+.gallery{display:flex;gap:8px;overflow-x:auto;margin:10px 0}
+.gallery img{flex:none;height:140px;border-radius:10px;cursor:zoom-in}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+#photoView{background:#000;display:none;align-items:center;justify-content:center}
+#photoView.on{display:flex}
+#photoView img{max-width:100%;max-height:100%}
+
+/* 말로 기록 */
+.vWrap{text-align:center}
+#vMic{width:120px;height:120px;border-radius:50%;border:0;background:var(--accent);color:#fff;font-size:52px;cursor:pointer;margin:6px auto 4px;display:block;box-shadow:0 6px 18px rgba(0,0,0,.2)}
+#vMic.rec{background:var(--rec);animation:pulse 1.2s infinite}
+#vState{font-size:14px;color:var(--sub);margin-bottom:10px;min-height:20px}
+#vInt{min-height:24px;color:var(--accent);font-size:15px;margin:6px 2px;text-align:left}
+#vText{min-height:180px;font-size:16px;line-height:1.8}
+.guide{font-size:13px;color:var(--sub);line-height:1.8;text-align:left;background:var(--card);border-radius:12px;padding:10px 12px;margin-top:12px}
+.guide b{color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <h1>💡 사업아이템</h1>
+  <span class="count" id="count"></span>
+</header>
+
+<main>
+  <section class="tab on" id="tab-list">
+    <div class="tools">
+      <input id="q" type="search" placeholder="🔍 이름·내용 검색">
+      <select id="sort">
+        <option value="upd">최근 수정순</option>
+        <option value="score">점수 높은순</option>
+        <option value="new">처음 적은순</option>
+        <option value="name">이름순</option>
+      </select>
+    </div>
+    <div class="chips" id="stChips"></div>
+    <div id="list"></div>
+  </section>
+
+  <section class="tab" id="tab-set">
+    <div class="panel">
+      <h3>🔄 PC·폰 자동 동기화</h3>
+      <p class="hint" id="syncStatus"></p>
+      <div id="syncSetup">
+        <input id="syncRepo" placeholder="저장소 (예: 8602274/meeting-log-data)" style="margin:8px 0 6px">
+        <input id="syncToken" type="password" autocomplete="off" placeholder="GitHub 토큰 (github_pat_…)" style="margin-bottom:8px">
+        <button class="btn primary block" id="btnSyncOn">연결하고 동기화</button>
+        <p class="hint" style="margin-top:8px">명함미팅에서 동기화를 켠 기기는 그 연결을 자동으로 같이 씁니다. 아니면 명함미팅 때 만든 토큰을 그대로 붙여 넣으세요.</p>
+      </div>
+      <div class="row" id="syncCtl" style="display:none;margin-top:8px">
+        <button class="btn primary" id="btnSyncNow">지금 동기화</button>
+        <button class="btn" id="btnSyncOff">연결 끊기</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>백업</h3>
+      <p class="hint">기록은 이 기기의 브라우저 안에 저장됩니다(동기화를 켜면 GitHub 비공개 저장소에도). 가끔 백업 파일을 내려받아 두세요.</p>
+      <div class="row" style="margin-top:8px">
+        <button class="btn primary" id="btnExport">백업 내려받기</button>
+        <button class="btn" id="btnImport">백업 불러오기</button>
+      </div>
+      <button class="btn block" id="btnCsv" style="margin-top:8px">엑셀(CSV)로 내려받기</button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+    </div>
+    <div class="panel">
+      <h3>화면</h3>
+      <select id="theme">
+        <option value="">기기 설정 따르기</option>
+        <option value="light">밝게</option>
+        <option value="dark">어둡게</option>
+      </select>
+    </div>
+    <div class="panel">
+      <h3>앱 정보</h3>
+      <p class="hint" id="appInfo"></p>
+      <button class="btn block" id="btnUpdate" style="margin-top:10px">🔄 업데이트 확인</button>
+    </div>
+  </section>
+</main>
+
+<button class="fab" id="fabAdd" title="글로 새 아이템">＋</button>
+<button class="fab" id="fabMic" title="말로 기록">🎤</button>
+<nav>
+  <button class="on" data-tab="list"><i>💡</i>아이템</button>
+  <button data-tab="set"><i>⚙️</i>설정</button>
+</nav>
+
+<!-- 상세 -->
+<div class="sheet" id="detailSheet">
+  <div class="top"><button id="dBack">← 목록</button><h2>아이템</h2><button id="dEdit">고치기</button></div>
+  <div class="body" id="dBody"></div>
+</div>
+
+<!-- 입력 -->
+<div class="sheet" id="formSheet">
+  <div class="top"><button id="fCancel">취소</button><h2 id="fTitle">새 아이템</h2><button id="fSave">저장</button></div>
+  <div class="body">
+    <div class="sec">
+      <label class="f">아이템 이름 <button class="mic" data-f="title">🎤</button></label>
+      <input id="f-title" placeholder="예: 공장 자재 재고 알림 앱">
+      <label class="f">한 줄 설명 <button class="mic" data-f="summary">🎤</button></label>
+      <input id="f-summary" placeholder="무엇을, 누구에게, 왜">
+      <label class="f">분류</label>
+      <div class="chips wrap" id="fCat"></div>
+      <label class="f">진행 상태</label>
+      <div class="chips wrap" id="fStatus"></div>
+      <label class="f">평가</label>
+      <div id="fScores"></div>
+    </div>
+    <div class="sec" id="fFields"></div>
+    <div class="sec">
+      <label class="f">사진·스케치</label>
+      <div class="photos" id="fPhotos"></div>
+      <input type="file" id="fPhotoIn" accept="image/*" multiple hidden>
+    </div>
+  </div>
+</div>
+
+<!-- 말로 기록 -->
+<div class="sheet" id="voiceSheet">
+  <div class="top"><button id="vClose">닫기</button><h2>🎤 말로 기록</h2><button id="vSave">저장</button></div>
+  <div class="body vWrap">
+    <button id="vMic">🎤</button>
+    <div id="vState">눌러서 말하기</div>
+    <select id="vTarget" style="margin:4px 0 8px"></select>
+    <div id="vInt"></div>
+    <textarea id="vText" placeholder="말한 내용이 여기에 적힙니다. 직접 고쳐도 됩니다."></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn" id="vClear">지우기</button><button class="btn primary" id="vSave2">저장</button></div>
+    <div class="guide">
+      한 줄씩 끊어 말하면서 줄 맨 앞에 아래 말을 붙이면 그 칸으로 들어갑니다.<br>
+      <b>제목</b> 무인 세차장 예약 앱 · <b>요약</b> … · <b>문제는</b> … · <b>해결은</b> … · <b>고객은</b> … ·
+      <b>수익은</b> … · <b>차별점은</b> … · <b>필요한 것은</b> … · <b>다음 할 일은</b> … · <b>메모</b> …<br>
+      붙이지 않은 말은 이어서 같은 칸에, 처음부터 없으면 메모로 들어갑니다. 말한 원문은 따로 보관됩니다.
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="photoView"><img alt=""></div>
+<div id="liveBar"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const APP_VERSION = 'v1.0.0';
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+// 명함미팅과 같은 주소(8602274.github.io)라 저장 공간을 나눠 쓴다 → 이 앱의 키는 모두 'idea.' 로 시작
+const P = 'idea.';
+function lsGet(k, d){ try { const v = localStorage.getItem(P + k); return v == null ? d : JSON.parse(v); } catch { return d; } }
+function lsSet(k, v){ try { localStorage.setItem(P + k, JSON.stringify(v)); } catch {} }
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2000); }
+const fmtD = t => { const d = new Date(t); return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`; };
+const fmtDT = t => new Date(t).toLocaleString('ko-KR', {month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'});
+
+const CATS = ['IT·앱', '제조', '유통·판매', '서비스', '식품', '교육', '기타'];
+const STATUS = [['아이디어', '💭'], ['검토중', '🔍'], ['진행중', '🚀'], ['보류', '⏸️'], ['접음', '🗃️']];
+const SCORES = [['interest', '관심'], ['feasible', '실현성'], ['profit', '수익성']];
+const FIELDS = [
+  ['problem', '😣 문제·불편', '어떤 불편이나 필요가 있나?'],
+  ['solution', '💡 해결 아이디어', '어떻게 풀까?'],
+  ['customer', '👥 대상 고객', '누가 돈을 낼까?'],
+  ['revenue', '💰 수익 방식', '어떻게 벌까? 가격은?'],
+  ['edge', '⚔️ 경쟁·차별점', '비슷한 것과 무엇이 다른가?'],
+  ['needs', '🧰 필요한 것', '돈·사람·기술·허가'],
+  ['next', '➡️ 다음 할 일', '이번 주에 확인할 것'],
+  ['memo', '📝 메모', ''],
+];
+const LABEL = Object.fromEntries([['title', '아이템 이름'], ['summary', '한 줄 설명'], ...FIELDS.map(f => [f[0], f[1]])]);
+
+/* ---------- 저장소 (IndexedDB) ---------- */
+const DB = {
+  db: null, mem: new Map(),
+  open(){
+    return new Promise(res => {
+      try {
+        const r = indexedDB.open('biz-ideas', 1);
+        r.onupgradeneeded = () => r.result.createObjectStore('ideas', {keyPath: 'id'});
+        r.onsuccess = () => { this.db = r.result; res(); };
+        r.onerror = () => res();
+      } catch { res(); }
+    });
+  },
+  tx(mode){ return this.db.transaction('ideas', mode).objectStore('ideas'); },
+  all(){
+    if (!this.db) return Promise.resolve([...this.mem.values()]);
+    return new Promise((res, rej) => { const r = this.tx('readonly').getAll(); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  },
+  put(v){
+    if (!this.db) { this.mem.set(v.id, v); return Promise.resolve(); }
+    return new Promise((res, rej) => { const r = this.tx('readwrite').put(v); r.onsuccess = () => res(); r.onerror = () => rej(r.error); });
+  },
+  del(id){
+    if (!this.db) { this.mem.delete(id); return Promise.resolve(); }
+    return new Promise((res, rej) => { const r = this.tx('readwrite').delete(id); r.onsuccess = () => res(); r.onerror = () => rej(r.error); });
+  }
+};
+
+let ideas = [];
+let stFilter = '';
+let editing = null;
+let detailId = null;
+const findI = id => ideas.find(x => x.id === id);
+const score = x => SCORES.reduce((s, [k]) => s + (x.scores?.[k] || 0), 0);
+const stars = n => n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '-';
+async function reload(){ ideas = await DB.all(); renderList(); }
+
+/* ---------- 음성 인식 ----------
+   한 마디(잠깐 쉼)마다 끝나는 방식으로 켜고, 말하는 동안은 끝나면 다시 켠다.
+   (연속 모드는 안드로이드 크롬에서 같은 말이 겹쳐 나오는 일이 있어 쓰지 않음) */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const Voice = {
+  rec: null, on: false, key: null, h: null,
+  start(key, h){
+    if (!SR) { toast('이 브라우저는 음성 인식이 안 됩니다 — 키보드의 🎤(음성 입력)를 쓰세요'); return false; }
+    this.stop();
+    this.on = true; this.key = key; this.h = h;
+    this._go(); h.state?.(true);
+    return true;
+  },
+  _go(){
+    const r = new SR();
+    r.lang = 'ko-KR'; r.interimResults = true; r.continuous = false; r.maxAlternatives = 1;
+    const h = this.h;
+    r.onresult = e => {
+      let fin = '', mid = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) fin += t; else mid += t;
+      }
+      h.interim?.(mid);
+      if (fin.trim()) { h.interim?.(''); h.final(fin.trim()); }
+    };
+    r.onerror = e => {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { toast('마이크 사용을 허용해 주세요 (주소창 왼쪽 자물쇠 → 마이크)'); this.stop(); }
+      else if (e.error === 'network') { toast('음성 인식은 인터넷이 연결돼 있어야 합니다'); this.stop(); }
+      else if (e.error === 'audio-capture') { toast('마이크를 찾을 수 없습니다'); this.stop(); }
+    };
+    r.onend = () => { if (this.on && this.rec === r) setTimeout(() => { if (this.on && this.rec === r) this._go(); }, 120); };
+    this.rec = r;
+    try { r.start(); } catch {}
+  },
+  stop(){
+    const was = this.on, h = this.h, r = this.rec;
+    this.on = false; this.rec = null; this.key = null;
+    try { r && r.stop(); } catch {}
+    if (was) { h?.interim?.(''); h?.state?.(false); }
+  }
+};
+
+/* 말한 글 → 칸 나누기. 줄 맨 앞의 "문제는", "고객은" 같은 말로 칸을 바꾼다 */
+const MARKERS = {
+  title: ['제목', '아이템 이름', '아이템명', '이름'],
+  summary: ['요약', '한 줄 설명', '한줄 설명', '한 줄', '한줄'],
+  problem: ['문제점', '문제', '불편한 점', '불편', '고민'],
+  solution: ['해결책', '해결 방법', '해결', '아이디어', '방법'],
+  customer: ['대상 고객', '고객', '타깃', '타겟', '대상'],
+  revenue: ['수익 방식', '수익 모델', '수익', '매출', '가격'],
+  edge: ['차별점', '차별', '경쟁', '강점', '장점'],
+  needs: ['필요한 것', '필요한 거', '필요', '준비물', '예산'],
+  next: ['다음 할 일', '할 일', '할일', '다음'],
+  memo: ['메모', '기타'],
+};
+const MARK_LIST = Object.entries(MARKERS).flatMap(([k, ws]) => ws.map(w => [k, w])).sort((a, b) => b[1].length - a[1].length);
+const PART = '(?:은요|는요|이요|은|는|이|가|으로는|로는|으로|로|요)?';
+function splitInline(text){
+  // 한 번에 길게 말한 경우: 문장 중간의 "문제는 ", "고객은 " 처럼 조사까지 붙은 말 앞에서 줄을 나눔
+  let t = text;
+  for (const [, w] of MARK_LIST) {
+    if (w.length < 2) continue;
+    t = t.replace(new RegExp(`([^\\n])\\s+(${w.replace(/ /g, '\\s?')}(?:은|는)\\s)`, 'g'), '$1\n$2');
+  }
+  return t;
+}
+function parseSpeech(text){
+  const out = {};
+  let cur = null;
+  for (let line of splitInline(text).split(/\n+/)) {
+    line = line.trim();
+    if (!line) continue;
+    for (const [k, w] of MARK_LIST) {
+      const m = new RegExp(`^${w.replace(/ /g, '\\s?')}${PART}(?:\\s*[:：,.]\\s*|\\s+|$)`).exec(line);
+      if (m) { cur = k; line = line.slice(m[0].length).trim(); break; }
+    }
+    if (!line) continue;
+    const k = cur || 'memo';
+    out[k] = out[k] ? out[k] + (k === 'title' || k === 'summary' ? ' ' : '\n') + line : line;
+  }
+  return out;
+}
+
+/* ---------- 목록 ---------- */
+$('#stChips').innerHTML = [['', '전체'], ...STATUS.map(([s, i]) => [s, `${i} ${s}`])]
+  .map(([v, t]) => `<button class="chip${v ? '' : ' on'}" data-st="${v}">${t}</button>`).join('');
+$('#stChips').onclick = e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  stFilter = b.dataset.st; $$('#stChips .chip').forEach(c => c.classList.toggle('on', c === b)); renderList();
+};
+$('#q').addEventListener('input', renderList);
+$('#sort').value = lsGet('sort', 'upd');
+$('#sort').addEventListener('change', () => { lsSet('sort', $('#sort').value); renderList(); });
+
+function renderList(){
+  $('#count').textContent = `${ideas.length}개`;
+  const q = $('#q').value.trim().toLowerCase();
+  let arr = ideas.filter(x => !stFilter || (x.status || '아이디어') === stFilter);
+  if (q) arr = arr.filter(x => ['title', 'summary', 'category', ...FIELDS.map(f => f[0])].some(k => (x[k] || '').toLowerCase().includes(q))
+    || (x.voice || []).some(v => v.text.toLowerCase().includes(q)));
+  const s = $('#sort').value;
+  arr.sort(s === 'score' ? (a, b) => score(b) - score(a) || b.updated - a.updated
+    : s === 'new' ? (a, b) => (a.created || 0) - (b.created || 0)
+    : s === 'name' ? (a, b) => (a.title || '').localeCompare(b.title || '', 'ko')
+    : (a, b) => (b.updated || 0) - (a.updated || 0));
+  if (!arr.length) {
+    $('#list').innerHTML = `<div class="empty">${ideas.length ? '찾는 아이템이 없습니다' : '아직 적은 아이템이 없습니다.<br><b>🎤</b>를 누르고 떠오른 생각을 말해 보세요.<br>글로 적으려면 <b>＋</b>'}</div>`;
+    return;
+  }
+  $('#list').innerHTML = arr.map(x => {
+    const st = x.status || '아이디어', sc = score(x);
+    return `<div class="item" data-id="${x.id}">
+      <div class="t"><b>${esc(x.title || '(이름 없음)')}</b><span class="badge ${st}">${st}</span></div>
+      ${x.summary || x.problem ? `<div class="s">${esc(x.summary || x.problem)}</div>` : ''}
+      <div class="m">${x.category ? `<span>${esc(x.category)}</span>` : ''}${sc ? `<span>★ ${sc}/15</span>` : ''}
+        ${(x.voice || []).length ? `<span>🎙️ ${x.voice.length}</span>` : ''}<span>${fmtD(x.updated || x.created)}</span></div>
+    </div>`;
+  }).join('');
+}
+$('#list').onclick = e => { const it = e.target.closest('.item'); if (it) openDetail(it.dataset.id); };
+
+/* ---------- 탭 ---------- */
+$$('nav button').forEach(b => b.onclick = () => {
+  $$('nav button').forEach(x => x.classList.toggle('on', x === b));
+  $$('.tab').forEach(t => t.classList.toggle('on', t.id === 'tab-' + b.dataset.tab));
+  const list = b.dataset.tab === 'list';
+  $('#fabMic').style.display = $('#fabAdd').style.display = list ? '' : 'none';
+  if (!list) renderInfo();
+});
+
+/* ---------- 상세 ---------- */
+function openDetail(id){ detailId = id; renderDetail(); $('#detailSheet').classList.add('on'); $('#detailSheet').scrollTop = 0; }
+function renderDetail(){
+  const x = findI(detailId);
+  if (!x) { $('#detailSheet').classList.remove('on'); return; }
+  const st = x.status || '아이디어';
+  let h = `<div class="dTitle">${esc(x.title || '(이름 없음)')}</div>`;
+  if (x.summary) h += `<div class="dSum">${esc(x.summary)}</div>`;
+  h += `<div class="dMeta"><span class="badge ${st}">${st}</span> ${esc(x.category || '')}<br>`
+    + SCORES.map(([k, l]) => `${l} <span style="color:#f59e0b">${stars(x.scores?.[k] || 0)}</span>`).join(' &nbsp; ')
+    + `<br>처음 ${fmtD(x.created)} · 고침 ${fmtDT(x.updated)}</div>`;
+  if ((x.photos || []).length) h += `<div class="gallery">${x.photos.map((p, i) => `<img src="${p}" data-i="${i}" alt="">`).join('')}</div>`;
+  for (const [k, l] of FIELDS) if (x[k]) h += `<div class="blk"><h4>${l}</h4><div class="tx">${esc(x[k])}</div></div>`;
+  if ((x.voice || []).length) h += `<div class="blk"><h4>🎙️ 말로 남긴 기록 (원문)</h4>${[...x.voice].reverse().map(v =>
+    `<div class="vlog"><small>${fmtDT(v.t)}</small>${esc(v.text)}</div>`).join('')}</div>`;
+  h += `<div class="grid2">
+    <button class="btn primary" id="dVoice">🎤 말로 덧붙이기</button>
+    <button class="btn" id="dEdit2">✏️ 고치기</button>
+    <button class="btn" id="dCopy">📋 글로 복사</button>
+    <button class="btn" id="dShare">📤 공유</button>
+  </div>
+  <button class="btn danger block" id="dDel" style="margin-top:14px">🗑️ 삭제</button>`;
+  $('#dBody').innerHTML = h;
+}
+$('#dBack').onclick = () => { $('#detailSheet').classList.remove('on'); detailId = null; };
+$('#dEdit').onclick = () => openForm(findI(detailId));
+$('#dBody').onclick = async e => {
+  const x = findI(detailId); if (!x) return;
+  const img = e.target.closest('.gallery img');
+  if (img) return showPhoto(x.photos[+img.dataset.i]);
+  const id = e.target.id;
+  if (id === 'dVoice') openVoice(x.id);
+  else if (id === 'dEdit2') openForm(x);
+  else if (id === 'dCopy') { await copyText(asText(x)); toast('복사했습니다'); }
+  else if (id === 'dShare') {
+    if (navigator.share) navigator.share({title: x.title || '사업아이템', text: asText(x)}).catch(() => {});
+    else { await copyText(asText(x)); toast('공유가 안 되는 기기라 복사했습니다'); }
+  } else if (id === 'dDel') {
+    if (!confirmTwice(e.target, '한 번 더 누르면 삭제합니다')) return;
+    await DB.del(x.id); $('#detailSheet').classList.remove('on'); detailId = null; await reload(); toast('삭제했습니다');
+  }
+};
+function asText(x){
+  const lines = [`💡 ${x.title || '(이름 없음)'}`];
+  if (x.summary) lines.push(x.summary);
+  lines.push(`분류: ${x.category || '-'} · 상태: ${x.status || '아이디어'} · ` + SCORES.map(([k, l]) => `${l} ${x.scores?.[k] || '-'}/5`).join(' '));
+  for (const [k, l] of FIELDS) if (x[k]) lines.push('', l, x[k]);
+  return lines.join('\n');
+}
+async function copyText(t){
+  try { await navigator.clipboard.writeText(t); }
+  catch { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+}
+function showPhoto(src){ $('#photoView img').src = src; $('#photoView').classList.add('on'); }
+$('#photoView').onclick = () => $('#photoView').classList.remove('on');
+function confirmTwice(btn, msg){
+  if (btn.dataset.armed) { delete btn.dataset.armed; return true; }
+  btn.dataset.armed = '1'; toast(msg); setTimeout(() => delete btn.dataset.armed, 3000); return false;
+}
+
+/* ---------- 입력 ---------- */
+$('#fCat').innerHTML = CATS.map(c => `<button class="chip" data-v="${c}">${c}</button>`).join('');
+$('#fStatus').innerHTML = STATUS.map(([s, i]) => `<button class="chip" data-v="${s}">${i} ${s}</button>`).join('');
+$('#fScores').innerHTML = SCORES.map(([k, l]) => `<div class="stars" data-k="${k}"><span>${l}</span>${[1, 2, 3, 4, 5].map(n => `<button data-n="${n}">★</button>`).join('')}</div>`).join('');
+$('#fFields').innerHTML = FIELDS.map(([k, l, ph]) => `<label class="f">${l} <button class="mic" data-f="${k}">🎤</button></label>
+  <textarea id="f-${k}" placeholder="${ph}"></textarea>`).join('');
+const pick = (box, v) => $$(`${box} .chip`).forEach(c => c.classList.toggle('on', c.dataset.v === v));
+$('#fCat').onclick = e => { const c = e.target.closest('.chip'); if (!c) return; editing.category = editing.category === c.dataset.v ? '' : c.dataset.v; pick('#fCat', editing.category); };
+$('#fStatus').onclick = e => { const c = e.target.closest('.chip'); if (!c) return; editing.status = c.dataset.v; pick('#fStatus', editing.status); };
+$('#fScores').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const k = b.closest('.stars').dataset.k, n = +b.dataset.n;
+  editing.scores[k] = editing.scores[k] === n ? 0 : n; paintStars();
+};
+function paintStars(){ $$('#fScores .stars').forEach(s => s.querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.n <= (editing.scores[s.dataset.k] || 0)))); }
+
+function openForm(x){
+  Voice.stop();
+  editing = x ? JSON.parse(JSON.stringify(x)) : {id: null, status: '아이디어', category: '', scores: {}, photos: [], voice: []};
+  editing.scores ||= {}; editing.photos ||= []; editing.voice ||= [];
+  $('#fTitle').textContent = x ? '아이템 고치기' : '새 아이템';
+  for (const k of ['title', 'summary', ...FIELDS.map(f => f[0])]) $('#f-' + k).value = editing[k] || '';
+  pick('#fCat', editing.category); pick('#fStatus', editing.status || '아이디어'); paintStars(); renderPhotos();
+  $('#formSheet').classList.add('on'); $('#formSheet').scrollTop = 0;
+}
+$('#fabAdd').onclick = () => openForm(null);
+$('#fCancel').onclick = () => { Voice.stop(); $('#formSheet').classList.remove('on'); editing = null; };
+$('#fSave').onclick = async () => {
+  Voice.stop();
+  const x = editing;
+  for (const k of ['title', 'summary', ...FIELDS.map(f => f[0])]) x[k] = $('#f-' + k).value.trim();
+  if (!x.title && !x.summary && !FIELDS.some(f => x[f[0]])) { toast('이름이나 내용을 하나는 적어 주세요'); return; }
+  if (!x.title) x.title = (x.summary || x.problem || x.solution || x.memo).split('\n')[0].slice(0, 30);
+  const isNew = !x.id;
+  if (isNew) { x.id = uid(); x.created = Date.now(); }
+  x.updated = Date.now();
+  try { await DB.put(x); } catch { toast('저장 실패: 저장 공간이 부족할 수 있습니다'); return; }
+  $('#formSheet').classList.remove('on'); editing = null;
+  await reload(); openDetail(x.id); toast(isNew ? '저장했습니다' : '고쳤습니다');
+};
+
+// 칸마다 🎤 — 말한 내용을 그 칸 끝에 이어 붙임
+$('#formSheet').addEventListener('click', e => {
+  const b = e.target.closest('.mic'); if (!b) return;
+  e.preventDefault();
+  const k = b.dataset.f;
+  if (Voice.on && Voice.key === k) { Voice.stop(); return; }
+  const el = $('#f-' + k);
+  Voice.start(k, {
+    final: t => { el.value = el.value ? el.value + (el.tagName === 'INPUT' ? ' ' : '\n') + t : t; },
+    interim: t => { $('#liveBar').textContent = t ? `🎤 ${t}` : `🎤 ${LABEL[k]}에 받아 적는 중… (🎤 다시 누르면 멈춤)`; },
+    state: on => {
+      $$('#formSheet .mic').forEach(m => m.classList.toggle('rec', on && m.dataset.f === k));
+      $('#liveBar').classList.toggle('on', on);
+      if (on) $('#liveBar').textContent = `🎤 ${LABEL[k]}에 받아 적는 중… (🎤 다시 누르면 멈춤)`;
+    }
+  });
+});
+
+// 사진 (긴 변 1280px JPEG로 줄여 저장)
+function renderPhotos(){
+  $('#fPhotos').innerHTML = editing.photos.map((p, i) => `<div class="ph"><img src="${p}" data-i="${i}" alt=""><button data-x="${i}">✕</button></div>`).join('')
+    + `<button class="addPh" id="addPh"><i>📷</i>사진 추가</button>`;
+}
+$('#fPhotos').onclick = e => {
+  if (e.target.closest('#addPh')) return $('#fPhotoIn').click();
+  const x = e.target.closest('[data-x]'); if (x) { editing.photos.splice(+x.dataset.x, 1); renderPhotos(); return; }
+  const img = e.target.closest('img'); if (img) showPhoto(img.src);
+};
+$('#fPhotoIn').addEventListener('change', async e => {
+  for (const f of e.target.files) { try { editing.photos.push(await shrink(f)); } catch { toast('사진을 읽지 못했습니다'); } }
+  e.target.value = ''; renderPhotos();
+});
+function shrink(file, max = 1280){
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(); };
+    img.src = url;
+  });
+}
+
+/* ---------- 말로 기록 ---------- */
+let vFor = null;   // 덧붙일 아이템 id (없으면 새 아이템)
+function openVoice(forId){
+  Voice.stop();
+  vFor = forId || null;
+  $('#vText').value = ''; $('#vInt').textContent = '';
+  $('#vTarget').innerHTML = `<option value="">➕ 새 아이템으로 저장</option>` + [...ideas].sort((a, b) => b.updated - a.updated)
+    .map(x => `<option value="${x.id}">➜ ${esc(x.title || '(이름 없음)')}에 덧붙이기</option>`).join('');
+  $('#vTarget').value = vFor || '';
+  $('#voiceSheet').classList.add('on');
+  vListen();
+}
+function vListen(){
+  Voice.start('voice', {
+    final: t => { const ta = $('#vText'); ta.value = ta.value ? ta.value.replace(/\s*$/, '') + '\n' + t : t; ta.scrollTop = ta.scrollHeight; },
+    interim: t => { $('#vInt').textContent = t; },
+    state: on => { $('#vMic').classList.toggle('rec', on); $('#vState').textContent = on ? '듣고 있어요… 말을 마치면 🎤를 눌러 멈추세요' : '눌러서 말하기'; }
+  });
+}
+$('#fabMic').onclick = () => openVoice(null);
+$('#vMic').onclick = () => { if (Voice.on) Voice.stop(); else vListen(); };
+$('#vClear').onclick = () => { $('#vText').value = ''; };
+$('#vClose').onclick = () => { Voice.stop(); $('#voiceSheet').classList.remove('on'); };
+$('#vSave').onclick = $('#vSave2').onclick = async () => {
+  Voice.stop();
+  await new Promise(r => setTimeout(r, 300));   // 멈출 때 마지막 말이 늦게 들어오는 것을 기다림
+  const text = $('#vText').value.trim();
+  if (!text) { toast('적힌 내용이 없습니다'); return; }
+  const p = parseSpeech(text);
+  const tid = $('#vTarget').value;
+  let x = tid && findI(tid);
+  const now = Date.now();
+  if (x) {
+    x = JSON.parse(JSON.stringify(x));
+    for (const [k, v] of Object.entries(p)) {
+      if (k === 'title') { if (!x.title) x.title = v; continue; }
+      x[k] = x[k] ? x[k] + (k === 'summary' ? ' ' : '\n') + v : v;
+    }
+  } else {
+    x = {id: uid(), created: now, status: '아이디어', category: '', scores: {}, photos: [], ...p};
+    if (!x.title) x.title = (p.summary || p.problem || p.solution || p.memo || text).split('\n')[0].slice(0, 30);
+  }
+  x.voice = [...(x.voice || []), {t: now, text}];
+  x.updated = now;
+  await DB.put(x);
+  $('#voiceSheet').classList.remove('on');
+  await reload(); openDetail(x.id);
+  const n = Object.keys(p).filter(k => k !== 'memo').length;
+  toast(tid ? '덧붙였습니다' : n ? `저장했습니다 (${n}개 칸에 나눠 넣음)` : '저장했습니다');
+};
+
+/* ---------- PC·폰 동기화 (GitHub 비공개 저장소, 아이템 하나 = ideas/<id>.json) ----------
+   명함미팅과 같은 저장소·토큰을 쓴다(폴더만 다름). 판정 방식도 명함미팅과 같음:
+   원격만 바뀜 → 받기 / 이 기기만 바뀜 → 올리기 / 둘 다 → updated 가 큰 쪽 / 지운 것은 양쪽에서 지움 */
+const DIR = 'ideas';
+const Sync = {
+  busy: false, again: false, timer: null, last: 0,
+  cfg(){
+    let c = lsGet('syncCfg', null);
+    if (c?.off) return null;   // 이 앱에서 직접 끊은 경우 — 명함미팅 연결도 가져오지 않음
+    if (!c) {   // 명함미팅에서 연결한 정보가 있으면 같이 씀
+      try { const m = JSON.parse(localStorage.getItem('syncCfg') || 'null'); if (m?.repo && m?.token) { c = {...m, shared: true}; lsSet('syncCfg', c); } } catch {}
+    }
+    return c;
+  },
+  async api(path, opt = {}){
+    const c = this.cfg();
+    const r = await fetch(`https://api.github.com/repos/${c.repo}/${path}`, {
+      cache: 'no-store', ...opt,
+      headers: {Authorization: `Bearer ${c.token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(opt.headers || {})}
+    });
+    if (!r.ok) { const e = new Error(`${r.status}`); e.status = r.status; throw e; }
+    return r;
+  },
+  b64(str){
+    const bytes = new TextEncoder().encode(str);
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  },
+  async remote(){
+    const map = new Map();
+    try {
+      const t = await (await this.api('git/trees/main?recursive=1')).json();
+      for (const e of t.tree || []) {
+        const m = new RegExp(`^${DIR}/(.+)\\.json$`).exec(e.path);
+        if (m && e.type === 'blob') map.set(m[1], e.sha);
+      }
+    } catch (e) { if (e.status !== 404 && e.status !== 409) throw e; }
+    return map;
+  },
+  async get(sha){ return JSON.parse(await (await this.api(`git/blobs/${sha}`, {headers: {Accept: 'application/vnd.github.raw+json'}})).text()); },
+  async put(x, sha){
+    const body = {message: `💡 ${x.title || x.id}`, content: this.b64(JSON.stringify(x)), branch: 'main'};
+    if (sha) body.sha = sha;
+    return (await (await this.api(`contents/${DIR}/${x.id}.json`, {method: 'PUT', body: JSON.stringify(body)})).json()).content.sha;
+  },
+  async del(id, sha){ await this.api(`contents/${DIR}/${id}.json`, {method: 'DELETE', body: JSON.stringify({message: `💡 삭제 ${id}`, sha, branch: 'main'})}); },
+  soon(){ if (!this.cfg()) return; clearTimeout(this.timer); this.timer = setTimeout(() => this.run(), 2500); },
+  async run(manual){
+    if (!this.cfg()) return;
+    if (this.busy) { this.again = true; return; }
+    this.busy = true; this.status('동기화 중…');
+    let up = 0, down = 0, gone = 0;
+    try {
+      const state = lsGet('syncState', {});
+      const rem = await this.remote();
+      const local = new Map((await DB.all()).map(x => [x.id, x]));
+      for (const [id, x] of local) {
+        const st = state[id], rsha = rem.get(id), mu = x.updated || 0;
+        if (rsha) {
+          if (st && st.sha === rsha) {
+            if (mu > (st.updated || 0)) { state[id] = {sha: await this.put(x, rsha), updated: mu}; up++; }
+          } else {
+            const r = await this.get(rsha), ru = r.updated || 0;
+            if (ru > mu) { await DB.put(r); state[id] = {sha: rsha, updated: ru}; down++; }
+            else if (mu > ru) { state[id] = {sha: await this.put(x, rsha), updated: mu}; up++; }
+            else state[id] = {sha: rsha, updated: mu};
+          }
+        } else if (st && mu <= (st.updated || 0)) { await DB.del(id); delete state[id]; gone++; }
+        else { state[id] = {sha: await this.put(x), updated: mu}; up++; }
+      }
+      for (const [id, rsha] of rem) {
+        if (local.has(id)) continue;
+        const st = state[id];
+        if (st && st.sha === rsha) { await this.del(id, rsha); delete state[id]; gone++; }
+        else { const r = await this.get(rsha); await DB.put(r); state[id] = {sha: rsha, updated: r.updated || 0}; down++; }
+      }
+      lsSet('syncState', state);
+      this.last = Date.now(); lsSet('syncLast', this.last);
+      if (down || gone) { await reload(); if (detailId) renderDetail(); }
+      const msg = [up && `올림 ${up}`, down && `받음 ${down}`, gone && `지움 ${gone}`].filter(Boolean).join(' · ');
+      this.status(`켜짐 · 마지막 동기화 ${new Date(this.last).toLocaleTimeString('ko-KR')}${msg ? ' · ' + msg : ''}`);
+      if (down || gone) toast(`다른 기기 기록을 맞췄습니다 (${msg})`);
+      else if (manual) toast(msg ? `동기화 완료 (${msg})` : '이미 같습니다');
+    } catch (e) {
+      const why = e.status === 401 ? '토큰이 틀렸거나 만료됨' : e.status === 403 || e.status === 404 ? '저장소 이름 또는 토큰 권한(Contents 읽기·쓰기) 확인'
+        : e.status === 409 ? '동시에 고쳐져 다음에 다시 맞춤' : '인터넷 연결 확인';
+      this.status(`⚠️ 동기화 실패 — ${why}`);
+      if (manual) toast(`동기화 실패: ${why}`);
+    } finally {
+      this.busy = false;
+      if (this.again) { this.again = false; this.soon(); }
+    }
+  },
+  status(t){ $('#syncStatus').textContent = t; },
+  show(){
+    const c = this.cfg();
+    $('#syncSetup').style.display = c ? 'none' : '';
+    $('#syncCtl').style.display = c ? '' : 'none';
+    if (!c) { this.status('꺼짐 — 토큰을 넣으면 PC·폰 기록이 자동으로 맞춰집니다.'); $('#syncRepo').value ||= '8602274/meeting-log-data'; }
+    else { const l = lsGet('syncLast', 0); this.status(`켜짐 (${c.repo}${c.shared ? ', 명함미팅 연결 같이 씀' : ''})${l ? ' · 마지막 동기화 ' + new Date(l).toLocaleString('ko-KR') : ''}`); }
+  }
+};
+for (const k of ['put', 'del']) {
+  const orig = DB[k].bind(DB);
+  DB[k] = async v => { await orig(v); if (!Sync.busy) Sync.soon(); };
+}
+$('#btnSyncOn').onclick = async () => {
+  const repo = $('#syncRepo').value.trim().replace(/^https:\/\/github\.com\//, '').replace(/\.git$|\/$/g, ''), token = $('#syncToken').value.trim();
+  if (!/^[\w.-]+\/[\w.-]+$/.test(repo) || !token) { toast('저장소(이름/저장소)와 토큰을 넣어 주세요'); return; }
+  lsSet('syncCfg', {repo, token}); lsSet('syncState', {});
+  $('#syncToken').value = ''; Sync.show(); await Sync.run(true);
+  if ($('#syncStatus').textContent.startsWith('⚠️')) { lsSet('syncCfg', {off: true}); Sync.show(); $('#syncRepo').value = repo; toast('연결 실패 — 토큰·저장소를 확인해 주세요'); }
+};
+$('#btnSyncNow').onclick = () => Sync.run(true);
+$('#btnSyncOff').onclick = () => {
+  if (!confirmTwice($('#btnSyncOff'), '한 번 더 누르면 연결을 끊습니다')) return;
+  lsSet('syncCfg', {off: true}); lsSet('syncState', {}); Sync.show(); toast('연결을 끊었습니다 (이 기기 기록은 그대로)');
+};
+
+/* ---------- 백업 · CSV ---------- */
+function download(name, text, type){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type})); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+const today = () => { const d = new Date(); return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`; };
+$('#btnExport').onclick = () => {
+  download(`사업아이템_백업_${today()}.json`, JSON.stringify({app: 'biz-ideas', version: APP_VERSION, exported: Date.now(), ideas}), 'application/json');
+  lsSet('lastBackup', Date.now()); renderInfo(); toast('백업 파일을 내려받았습니다');
+};
+$('#btnImport').onclick = () => $('#importFile').click();
+$('#importFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    const arr = Array.isArray(data) ? data : data.ideas;
+    if (!Array.isArray(arr)) throw 0;
+    let add = 0, upd = 0;
+    for (const x of arr) {
+      if (!x || !x.id) continue;
+      const cur = findI(x.id);
+      if (!cur) { await DB.put(x); add++; }
+      else if ((x.updated || 0) > (cur.updated || 0)) { await DB.put(x); upd++; }
+    }
+    await reload(); toast(`불러오기 완료: 새로 ${add}건 · 갱신 ${upd}건`);
+  } catch { toast('백업 파일이 아니거나 읽을 수 없습니다'); }
+});
+$('#btnCsv').onclick = () => {
+  const cols = [['title', '아이템'], ['summary', '한 줄 설명'], ['category', '분류'], ['status', '상태'],
+    ...SCORES.map(([k, l]) => ['s:' + k, l]), ...FIELDS.map(([k, l]) => [k, l.replace(/^\S+\s/, '')]), ['created', '처음 적은 날'], ['updated', '고친 날']];
+  const val = (x, k) => k.startsWith('s:') ? (x.scores?.[k.slice(2)] || '') : k === 'created' || k === 'updated' ? fmtD(x[k]) : (x[k] || '');
+  const q = v => `"${String(v).replace(/"/g, '""')}"`;
+  const rows = [cols.map(c => q(c[1])).join(',')];
+  for (const x of [...ideas].sort((a, b) => (b.updated || 0) - (a.updated || 0))) rows.push(cols.map(c => q(val(x, c[0]))).join(','));
+  download(`사업아이템_${today()}.csv`, '﻿' + rows.join('\r\n'), 'text/csv');
+};
+
+/* ---------- 화면 · 정보 · 업데이트 ---------- */
+function applyTheme(){ const t = lsGet('theme', ''); if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; $('#theme').value = t; }
+$('#theme').addEventListener('change', () => { lsSet('theme', $('#theme').value); applyTheme(); });
+async function renderInfo(){
+  const v = ideas.reduce((n, x) => n + (x.voice || []).length, 0);
+  let t = `사업아이템 ${APP_VERSION} · 아이템 ${ideas.length}개 · 음성 기록 ${v}건`;
+  const lb = lsGet('lastBackup', 0);
+  t += `<br>마지막 백업: ${lb ? new Date(lb).toLocaleString('ko-KR') : '없음'}`;
+  t += `<br>음성 인식: ${SR ? '사용 가능 (인터넷 필요)' : '이 브라우저는 안 됨 — 키보드의 🎤 음성 입력 사용'}`;
+  $('#appInfo').innerHTML = t;
+  Sync.show();
+}
+async function serverVersion(){
+  const r = await fetch(`./?vcheck=${Date.now()}`, {cache: 'no-store'});
+  const m = /const APP_VERSION = '([^']+)'/.exec(await r.text());
+  return m ? m[1] : null;
+}
+async function forceUpdate(){
+  try { for (const k of await caches.keys()) if (k.startsWith('biz-ideas-')) await caches.delete(k); } catch {}
+  try { const reg = await navigator.serviceWorker?.getRegistration(); await reg?.update(); } catch {}
+  location.reload();
+}
+let checking = false;
+async function checkUpdate(manual){
+  if (checking || !location.protocol.startsWith('http')) return;
+  checking = true;
+  try {
+    const v = await serverVersion();
+    if (!v || v === APP_VERSION) { if (manual) toast(`최신 버전입니다 (${APP_VERSION})`); return; }
+    if (!manual && $$('.sheet.on').length) return;
+    let tried = {};
+    try { tried = JSON.parse(sessionStorage.getItem(P + 'updTry') || '{}'); } catch {}
+    if (!manual && tried.v === v && Date.now() - tried.t < 120000) return;
+    try { sessionStorage.setItem(P + 'updTry', JSON.stringify({v, t: Date.now()})); } catch {}
+    toast(`새 버전 ${v}으로 바꿉니다`);
+    setTimeout(forceUpdate, 600);
+  } catch { if (manual) toast('인터넷 연결을 확인해 주세요'); }
+  finally { checking = false; }
+}
+$('#btnUpdate').onclick = () => checkUpdate(true);
+
+// 폰 뒤로 가기: 열린 화면부터 닫기
+window.addEventListener('popstate', () => {
+  const open = $$('.sheet.on').sort((a, b) => +getComputedStyle(b).zIndex - +getComputedStyle(a).zIndex)[0];
+  if (open) { Voice.stop(); open.classList.remove('on'); history.pushState(null, ''); }
+});
+
+(async () => {
+  applyTheme();
+  await DB.open();
+  await reload();
+  try { navigator.storage?.persist?.(); } catch {}
+  history.pushState(null, '');
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    navigator.serviceWorker.register('sw.js', {updateViaCache: 'none'}).then(reg => {
+      reg.update().catch(() => {});
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
+    }).catch(() => {});
+    checkUpdate(false);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(false); });
+  }
+  if (location.protocol.startsWith('http')) {
+    Sync.show(); Sync.run();
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - Sync.last > 30000) Sync.run(); });
+  }
+})();
+</script>
+</body>
+</html>
